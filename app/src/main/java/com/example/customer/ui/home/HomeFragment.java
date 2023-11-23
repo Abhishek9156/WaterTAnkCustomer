@@ -49,7 +49,7 @@ import com.karumi.dexter.listener.single.PermissionListener;
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
-   
+
     private GoogleMap mMap;
 
     HomeViewModel homeViewModel;
