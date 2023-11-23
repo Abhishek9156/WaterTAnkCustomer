@@ -22,5 +22,7 @@
     <string name="title_activity_maps">MapsActivity</string>
     <string name="permission_required">Location permission required\n</string>
     <string name="title_activity_main_activitywewe">MainActivitywewe</string>
+    <string name="driver_not_found">Drivers not found!\n</string>
+    <string name="not_found_key">Not found driver with key</string>
 
 </resources>
