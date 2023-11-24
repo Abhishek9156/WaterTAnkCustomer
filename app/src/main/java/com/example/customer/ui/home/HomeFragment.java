@@ -152,7 +152,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, IFireb
         }
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
 
-loadAvailableDriver();
+        loadAvailableDriver();
     }
 
     private void loadAvailableDriver() {
@@ -166,6 +166,7 @@ loadAvailableDriver();
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 }).addOnSuccessListener(location -> {
+                    //Load all driver available in city
                     Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
                     List<Address> addressesList;
                     try {
@@ -219,18 +220,18 @@ loadAvailableDriver();
                         driver_location_ref.addChildEventListener(new ChildEventListener() {
                             @Override
                             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                                GeoQueryModel geoQueryModel=snapshot.getValue(GeoQueryModel.class);
-                                GeoLocation geoLocation=new GeoLocation(geoQueryModel.getL().get(0),
+                                GeoQueryModel geoQueryModel = snapshot.getValue(GeoQueryModel.class);
+                                GeoLocation geoLocation = new GeoLocation(geoQueryModel.getL().get(0),
                                         geoQueryModel.getL().get(1));
-                                DriverGeoModel driverGeoModel=new DriverGeoModel(snapshot.getKey(),
+                                DriverGeoModel driverGeoModel = new DriverGeoModel(snapshot.getKey(),
                                         geoLocation);
-                                Location newDriverLocation=new Location("");
+                                Location newDriverLocation = new Location("");
                                 newDriverLocation.setLatitude(geoLocation.latitude);
                                 newDriverLocation.setLongitude(geoLocation.longitude);
-                                float newdistance=location.distanceTo(newDriverLocation)/1000;//in KM
-                           if(newdistance<=LIMIT_RANGE){
-                               findDriverByKey(driverGeoModel);
-                           }
+                                float newdistance = location.distanceTo(newDriverLocation) / 1000;//in KM
+                                if (newdistance <= LIMIT_RANGE) {
+                                    findDriverByKey(driverGeoModel);
+                                }
                             }
 
                             @Override
@@ -287,8 +288,8 @@ loadAvailableDriver();
                         if (snapshot.hasChildren()) {
                             driverGeoModel.setDriverInfoModel(snapshot.getValue(DriverInfoModel.class));
                             iFirebaseDriverInfoListner.onDriverInfoLoadSuccess(driverGeoModel);
-                        }else {
-                            iFirebaseFailedListner.onFirebaseLoadFailed(getString(R.string.not_found_key)+driverGeoModel.getKey());
+                        } else {
+                            iFirebaseFailedListner.onFirebaseLoadFailed(getString(R.string.not_found_key) + driverGeoModel.getKey());
 
                         }
                     }
@@ -389,35 +390,40 @@ loadAvailableDriver();
     @Override
     public void onDriverInfoLoadSuccess(DriverGeoModel driverGeoModel) {
         //If already has marker with this key doesnot set again
-        if(!Common.markerList.containsKey(driverGeoModel.getKey())){
+        if (!Common.markerList.containsKey(driverGeoModel.getKey()))
             Common.markerList.put(driverGeoModel.getKey(),
-                    mMap.addMarker(new MarkerOptions().position(new LatLng(driverGeoModel.getGeoLocation().latitude,
-                            driverGeoModel.getGeoLocation().longitude)).flat(true).title(Common.buildName(driverGeoModel.getDriverInfoModel().getFirstName(),
-                            driverGeoModel.getDriverInfoModel().getLastName())).snippet(driverGeoModel.getDriverInfoModel().getPhoneNumber())
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.car_display))));
-            if(!TextUtils.isEmpty(cityName)){
-                DatabaseReference driverLocation=FirebaseDatabase.getInstance()
-                        .getReference(Common.DRIVERS_LOCATION_REFERENCE)
-                        .child(cityName)
-                        .child(driverGeoModel.getKey());
-                driverLocation.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-if(snapshot.hasChildren()){
-    if(Common.markerList.get(driverGeoModel.getKey())!=null){
-        Common.markerList.get(driverGeoModel.getKey()).remove();//Remove marker
-    }
-    Common.markerList.remove(driverGeoModel.getKey());//Remove maeker info has map
-    driverLocation.removeEventListener(this);//remove event listner
-}
-                    }
+                    mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(driverGeoModel.getGeoLocation().latitude,
+                                    driverGeoModel.getGeoLocation().longitude))
+                            .flat(true)
+                            .title(Common.buildName(driverGeoModel.getDriverInfoModel().getFirstName(),
+                                    driverGeoModel.getDriverInfoModel().getLastName()))
+                            .snippet(driverGeoModel.getDriverInfoModel().getPhoneNumber())
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.car))));
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+        if (!TextUtils.isEmpty(cityName)) {
+            DatabaseReference driverLocation = FirebaseDatabase.getInstance()
+                    .getReference(Common.DRIVERS_LOCATION_REFERENCE)
+                    .child(cityName)
+                    .child(driverGeoModel.getKey());
+            driverLocation.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!snapshot.hasChildren()) {
+                        if (Common.markerList.get(driverGeoModel.getKey()) != null)
+                            Common.markerList.get(driverGeoModel.getKey()).remove();//Remove marker
+
+                        Common.markerList.remove(driverGeoModel.getKey());//Remove maeker info has map
+                        driverLocation.removeEventListener(this);//remove event listner
                     }
-                });
-            }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
+
     }
 }
