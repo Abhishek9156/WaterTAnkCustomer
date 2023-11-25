@@ -24,6 +24,11 @@
     <string name="title_activity_main_activitywewe">MainActivitywewe</string>
     <string name="driver_not_found">Drivers not found!\n</string>
     <string name="not_found_key">Not found driver with key</string>
-    <string name="google_api_key">AIzaSyCDJ6Q9yHNAZjVKm9NaRdI6wTACLyjFzY4</string>
+    <string name="google_api_key" translatable="false">AIzaSyCDJ6Q9yHNAZjVKm9NaRdI6wTACLyjFzY4</string>
+    <string name="welcome">Good Afternoon\n</string>
+    <string name="choose_a_saved_place">Choose a saved place\n</string>
+    <string name="where_to">Search your location?\n</string>
+    <string name="city_name_empty">City name is empty\n</string>
+    <string name="title_activity_driver_request">DriverRequestActivity</string>
 
 </resources>

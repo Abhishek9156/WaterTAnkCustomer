@@ -18,13 +18,19 @@
         android:theme="@style/Theme.Customer"
         tools:targetApi="31">
 
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_api_key" />
+
+        <activity
+            android:name=".DriverRequestActivity"
+            android:exported="false"
+            android:label="@string/title_activity_driver_request" />
         <activity
             android:name=".splash.SplashActivity"
-            android:theme="@style/SplashTheme"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -35,9 +41,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Customer.NoActionBar">
-
-        </activity>
+            android:theme="@style/Theme.Customer.NoActionBar"></activity>
     </application>
 
 </manifest>

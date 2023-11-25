@@ -1,5 +1,7 @@
 package com.example.customer.common;
 
+import android.widget.TextView;
+
 import com.example.customer.model.AnimationModel;
 import com.example.customer.model.DriverGeoModel;
 import com.example.customer.model.RiderModel;
@@ -8,6 +10,7 @@ import com.google.android.gms.maps.model.Marker;
 
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,5 +77,18 @@ public class Common {
         else if (begin.latitude < end.latitude && begin.longitude >= end.longitude)
             return (float) ((90 - Math.toDegrees(Math.atan(lng / lat))) + 270);
         return -1;
+    }
+
+    public static void setWelcomemessage(TextView txtWelcome) {
+        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        if(hour >=1 && hour <=12)
+            txtWelcome.setText(new StringBuilder("Good morning"));
+        else if(hour >= 13 && hour <=17)
+            txtWelcome.setText(new StringBuilder("Good afternoon"));
+        else
+            txtWelcome.setText(new StringBuilder("Good evening"));
+
+
+
     }
 }
