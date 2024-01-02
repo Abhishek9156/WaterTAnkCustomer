@@ -4,6 +4,7 @@ import static io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.*;
 
 import android.Manifest;
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 
@@ -28,6 +29,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.customer.DriverRequestActivity;
 import com.example.customer.R;
 import com.example.customer.callback.IFirebaseDriverInfoListner;
 import com.example.customer.callback.IFirebaseFailedListner;
@@ -36,6 +38,7 @@ import com.example.customer.model.AnimationModel;
 import com.example.customer.model.DriverGeoModel;
 import com.example.customer.model.DriverInfoModel;
 import com.example.customer.model.GeoQueryModel;
+import com.example.customer.model.event.SelectePlaceEvent;
 import com.example.customer.remote.IGoogleApi;
 import com.example.customer.remote.RetrofitClient;
 import com.firebase.geofire.GeoFire;
@@ -76,6 +79,7 @@ import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -112,7 +116,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, IFireb
     IFirebaseDriverInfoListner iFirebaseDriverInfoListner;
     IFirebaseFailedListner iFirebaseFailedListner;
     private String cityName;
-    private CompositeDisposable compositeDisposable=new CompositeDisposable();
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private IGoogleApi iGoogleApi;
     private AutocompleteSupportFragment autocompleteSupportFragment;
 
@@ -132,17 +136,17 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, IFireb
     }
 
     private void initViews(View root) {
-        slidingUpPanelLayout=root.findViewById(R.id.activity_main);
-        txt_welcome=root.findViewById(R.id.txt_welcome);
+        slidingUpPanelLayout = root.findViewById(R.id.activity_main);
+        txt_welcome = root.findViewById(R.id.txt_welcome);
         Common.setWelcomemessage(txt_welcome);
     }
 
     private void init() {
-        Places.initialize(getContext(),getString(R.string.google_api_key));
-        autocompleteSupportFragment=(AutocompleteSupportFragment)getChildFragmentManager()
+        Places.initialize(getContext(), getString(R.string.google_api_key));
+        autocompleteSupportFragment = (AutocompleteSupportFragment) getChildFragmentManager()
                 .findFragmentById(R.id.autocomplete_fragment);
-        autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID,Place.Field.ADDRESS,
-                Place.Field.NAME,Place.Field.LAT_LNG));
+        autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.ADDRESS,
+                Place.Field.NAME, Place.Field.LAT_LNG));
         autocompleteSupportFragment.setHint(getString(R.string.where_to));
         autocompleteSupportFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -152,7 +156,19 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, IFireb
 
             @Override
             public void onPlaceSelected(@NonNull Place place) {
-                Toast.makeText(getContext(),""+ place.getLatLng(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getContext(),""+ place.getLatLng(), Toast.LENGTH_SHORT).show();
+                if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getContext(),getString(R.string.permission_required), Toast.LENGTH_SHORT).show();
+
+                    return;
+                }
+                fusedLocationProviderClient.getLastLocation()
+                        .addOnSuccessListener(location -> {
+                            LatLng origin=new LatLng(location.getLatitude(),location.getLongitude());
+                            LatLng destination=new LatLng(place.getLatLng().latitude,place.getLatLng().longitude);
+                            startActivity(new Intent(getContext(), DriverRequestActivity.class));
+                            EventBus.getDefault().postSticky(new SelectePlaceEvent(origin,destination));
+                        });
             }
         });
 
@@ -252,7 +268,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, IFireb
                            geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
                                @Override
                                public void onKeyEntered(String key, GeoLocation location) {
-                                   Common.driverFound.add(new DriverGeoModel(key, location));
+                                  // Common.driverFound.add(new DriverGeoModel(key, location));
+                                   if(Common.driverFound.containsKey(key))
+                                       Common.driverFound.put(key,new DriverGeoModel(key,location));
                                }
 
                                @Override
@@ -331,11 +349,11 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, IFireb
 
     private void addDriverMarker() {
         if (Common.driverFound.size() > 0) {
-            Observable.fromIterable(Common.driverFound)
+            Observable.fromIterable(Common.driverFound.keySet())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(driverGeoModel -> {
-                        findDriverByKey(driverGeoModel);
+                    .subscribe(key -> {
+                        findDriverByKey(Common.driverFound.get(key));
                     }, throwable -> {
                         Toast.makeText(getContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
                     }, () -> {
@@ -355,6 +373,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, IFireb
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.hasChildren()) {
                             driverGeoModel.setDriverInfoModel(snapshot.getValue(DriverInfoModel.class));
+                          Common.driverFound.get(driverGeoModel.getKey()).setDriverInfoModel(snapshot.getValue(DriverInfoModel.class));
                             iFirebaseDriverInfoListner.onDriverInfoLoadSuccess(driverGeoModel);
                         } else {
                             iFirebaseFailedListner.onFirebaseLoadFailed(getString(R.string.not_found_key) + driverGeoModel.getKey());
@@ -402,7 +421,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, IFireb
                         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                                 && ActivityCompat.checkSelfPermission(getContext(),
                                 Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                            Snackbar.make(getView(), getString(R.string.permission_required), Snackbar.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.permission_required), Toast.LENGTH_SHORT).show();
+
                             return;
                         }
                         mMap.setMyLocationEnabled(true);

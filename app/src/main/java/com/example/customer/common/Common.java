@@ -1,5 +1,6 @@
 package com.example.customer.common;
 
+import android.animation.ValueAnimator;
 import android.widget.TextView;
 
 import com.example.customer.model.AnimationModel;
@@ -14,6 +15,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Common {
@@ -21,9 +23,10 @@ public class Common {
     public static final String DRIVERS_LOCATION_REFERENCE = "DriversLocation";
     public static final String DRIVER_INFO_REFERENCE = "DriverInfo";
     public static RiderModel currentRider;
-    public static Set<DriverGeoModel> driverFound=new HashSet<DriverGeoModel>();
+//    public static Set<DriverGeoModel> driverFound=new HashSet<DriverGeoModel>();
     public static HashMap<String, Marker> markerList=new HashMap<>();
     public static HashMap<String, AnimationModel> driverLocationSubscribe=new HashMap<String,AnimationModel>();
+    public static Map<String,DriverGeoModel> driverFound=new HashMap<String,DriverGeoModel>();
 
 
     public static String buildName(String firstName, String lastName) {
@@ -90,5 +93,28 @@ public class Common {
 
 
 
+    }
+
+    public static String formatDuration(String duration) {
+        if(duration.contains("mins"))
+            return duration.substring(0,duration.length()-1);
+        else
+            return duration;
+    }
+
+    public static String formatAddress(String startAddres) {
+        int firstIndexOfComma =startAddres.indexOf(",");
+        return startAddres.substring(0,firstIndexOfComma);
+    }
+
+    public static ValueAnimator valueAnimate(long duration, ValueAnimator.AnimatorUpdateListener listener) {
+    ValueAnimator va=ValueAnimator.ofFloat(0,100);
+    va.setDuration(duration);
+    va.addUpdateListener(listener);
+    va.setRepeatCount(ValueAnimator.INFINITE);
+    va.setRepeatMode(ValueAnimator.RESTART);
+
+    va.start();
+    return va;
     }
 }

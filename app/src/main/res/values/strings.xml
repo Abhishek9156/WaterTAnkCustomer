@@ -20,15 +20,21 @@
     <string name="title_activity_driver_home">DriverHomeActivity</string>
 
     <string name="title_activity_maps">MapsActivity</string>
-    <string name="permission_required">Location permission required\n</string>
+    <string name="permission_required">Location permission required</string>
     <string name="title_activity_main_activitywewe">MainActivitywewe</string>
-    <string name="driver_not_found">Drivers not found!\n</string>
+    <string name="driver_not_found">Drivers not found!</string>
     <string name="not_found_key">Not found driver with key</string>
-    <string name="google_api_key" translatable="false">AIzaSyCDJ6Q9yHNAZjVKm9NaRdI6wTACLyjFzY4</string>
+    <string name="google_api_key" translatable="false">key</string>
     <string name="welcome">Good Afternoon\n</string>
-    <string name="choose_a_saved_place">Choose a saved place\n</string>
-    <string name="where_to">Search your location?\n</string>
-    <string name="city_name_empty">City name is empty\n</string>
+    <string name="choose_a_saved_place">Choose a saved place</string>
+    <string name="where_to">Search your location?</string>
+    <string name="city_name_empty">City name is empty</string>
     <string name="title_activity_driver_request">DriverRequestActivity</string>
+    <string name="pay_by_cash">Pay by Cash</string>
+    <string name="confirm_truck">Confirm truck</string>
+    <string name="confirm_pickup_spot">Confirm pickup spot</string>
+    <string name="address_demo">yelahanka</string>
+    <string name="meet_driver_here">Meet driver here</string>
+    <string name="finding_your_ride">Finding your ride</string>
 
 </resources>
